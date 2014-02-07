@@ -1,0 +1,20 @@
+TODO
+====
+
+*motion blur shader
+-
+
+*setup controls
+-scan line shader
+-resolution select
+-low persistence toggle (variable motion blur control)
+
+*device group settings select
+-instead of individual settings
+
+*hide menu button
+
+*small display of current settings in minimized
+
+*sensor drift
+-camera random drifts horizontally @ rate if dk1 or drift enabled
