@@ -31,7 +31,7 @@ body {
 }
 
 #directions {
-	font-size: 14px;
+	font-size: 13px;
 }
 
 #controls {
@@ -109,8 +109,20 @@ a:hover {
 
 }
 
+.hide {
+	display: none;
+}
+
 .clear {
 	clear: both;
+}
+
+.left {
+	float: left;
+}
+
+.right {
+	float: right;
 }
 
 #oldie {

@@ -1,8 +1,8 @@
 /**
- * Scanline shader
+ * 'Screen door' effect shader
  */
 
-THREE.ScanlineShader = {
+THREE.ScreendoorShader = {
 
 	uniforms: {
 		"tDiffuse":   { type: "t", value: null },

@@ -12,31 +12,31 @@
 <div id="container"><br /><br /><br /><br /><br />Generating world...</div>
 <div id="info">
 	<h1>oculus rift simulator</h1>
-	<div id="directions">{ left click: forward, right click: backward, h: hide text }</div>
+	<div id="directions">&middot; left click: forward, right click: backward, h: hide ui &middot;</div>
 	<div id="controls">
 		<h2>resolution</h2>
 		<div id="resolution-select">
 			<div class="btn selected" data-id="dk1">DK1 - 1280×800</div>
 			<div class="btn" data-id="fhd">1080 - 1920×1080</div>
-			<div class="btn" data-id="cv1" confirmed-resolution="true">CV1 - 2560×1440 </div>
+			<div class="btn" data-id="cv1" confirmed-resolution="plz">CV1 - 2560×1440 </div>
 			<div class="btn" data-id="cv2">4k - 3840×2160</div>
 		</div>
 
 		<div class="clear"></div>
 
-		<h2>persistence</h2>
 		<div id="low-persistence">
+			<h2>persistence</h2>
 			<div class="btn" id="toggle-persistence" data-value="low">low persistence</div>
 		</div>
 
-		<h2>sensor drift</h2>
-		<div id="drift">
+		<div id="drift" class="hide">
+			<h2>sensor drift</h2>
 			<div class="btn" id="toggle-drift" data-val="1">drift</div>
 		</div>
 
 	</div>
 	<div id="cred">
-		code by <a href="//twitter.com/mkeblx">@mkeblx</a>
+		<a href="//twitter.com/mkeblx">@mkeblx</a> <span class="right"><a href="https://github.com/mkeblx/oculus-sim">github.com/mkeblx/oculus-sim</a></span>
 	</div>
 </div>
 
@@ -58,6 +58,7 @@
 <script src="js/shaders/TriangleBlurShader.js"></script>
 <script src="js/shaders/RGBShiftShader.js"></script>
 <script src="js/shaders/ScanlineShader.js"></script>
+<script src="js/shaders/ScreendoorShader.js"></script>
 <script src="js/postprocessing/EffectComposer.js"></script>
 <script src="js/postprocessing/RenderPass.js"></script>
 <script src="js/postprocessing/MaskPass.js"></script>

@@ -15,11 +15,12 @@ var clock = new THREE.Clock();
 var resolutions = {
 	dk1: {w: 1280, h: 800},
 	fhd: {w: 1920, h: 1080},
-	cv1: {w: 2560, h: 1440}
+	cv1: {w: 2560, h: 1440},
+	_4k:  {w: 3840, h: 2160}
 };
 
 
-var vignettePass, hblurPass, vblurPass, renderPass, copyPass, scanlinePass;
+var vignettePass, hblurPass, vblurPass, renderPass, copyPass, screenPass;
 
 if (!Detector.webgl) {
 	Detector.addGetWebGLMessage();
@@ -157,7 +158,7 @@ function init() {
 	renderPass = new THREE.RenderPass( scene, camera );
 
 	vignettePass = new THREE.ShaderPass( THREE.VignetteShader );
-	vignettePass.uniforms[ "darkness" ].value = 0.9;
+	vignettePass.uniforms[ "darkness" ].value = 1;
 	vignettePass.uniforms[ "offset" ].value = 0.9;
 
 	hblurPass = new THREE.ShaderPass( THREE.HorizontalBlurShader );
@@ -167,10 +168,12 @@ function init() {
 
 	filmPass = new THREE.ShaderPass( THREE.FilmShader );
 	filmPass.uniforms["grayscale"].value = 0;
-  filmPass.uniforms["time"].value = 0.0;
+	filmPass.uniforms["time"].value = 0.0;
+	filmPass.uniforms["time"].value = 0.0;
+	filmPass.uniforms["nIntensity"].value = 1;
+	filmPass.uniforms["sIntensity"].value = 0.5;
 
-	scanlinePass = new THREE.ShaderPass( THREE.ScanlineShader );
-	scanlinePass.uniforms["resolution"].value = new THREE.Vector2( 512, 512 );
+	screenPass = new THREE.ShaderPass( THREE.ScreendoorShader );
 
 	setupComposer(false);
 
@@ -238,36 +241,36 @@ function setupComposer(reset) {
 	composer = new THREE.EffectComposer( renderer );
 
 	composer.addPass( renderPass );
-	composer.addPass( vignettePass );
+	//composer.addPass( vignettePass );
 
 	if (persistence == 'high') {
 		composer.addPass( hblurPass );
 		composer.addPass( vblurPass );
 	}
 
-	if (resolution != 'cv2') {
-		if (resolution == 'dk1') {
-			filmPass.uniforms["time"].value = 0.0;
-			filmPass.uniforms["nIntensity"].value = 1;
-			filmPass.uniforms["sIntensity"].value = 0.5;
-			filmPass.uniforms["sCount"].value = 1024;
-		} else if (resolution == 'fhd') {
-			filmPass.uniforms["time"].value = 0.0;
-			filmPass.uniforms["nIntensity"].value = 1;
-			filmPass.uniforms["sIntensity"].value = 0.5;
-			filmPass.uniforms["sCount"].value = 2048;
-		} else {
-			filmPass.uniforms["time"].value = 0.0;
-			filmPass.uniforms["nIntensity"].value = 1;
-			filmPass.uniforms["sIntensity"].value = 0.5;
-			filmPass.uniforms["sCount"].value = 8000;			
-		}
-		composer.addPass( scanlinePass );
-		//composer.addPass( filmPass );
-	} else {
-		console.log('no film pass');
+	//screen door
+	screenPass.uniforms["enable"].value = 1;
+	if (resolution == 'dk1') {
+		filmPass.uniforms["sCount"].value = 1024;
+		screenPass.uniforms["resolution"].value = 6;
+		screenPass.uniforms["opacity"].value = 0.2;
+	} else if (resolution == 'fhd') {
+		filmPass.uniforms["sCount"].value = 2048;
+		screenPass.uniforms["resolution"].value = 4;
+		screenPass.uniforms["resolution"].value = 4;
+		screenPass.uniforms["opacity"].value = 0.15;			
+	} else if (resolution == 'cv1') {
+		filmPass.uniforms["sCount"].value = 8000;
+		screenPass.uniforms["resolution"].value = 3;
+		screenPass.uniforms["opacity"].value = 0.1;
+	} else { // cv2 - 4k
+		screenPass.uniforms["resolution"].value = 2;
+		screenPass.uniforms["opacity"].value = 0.06;
+		//screenPass.uniforms["enable"].value = 0;
 	}
-
+	
+	composer.addPass( screenPass );
+	//composer.addPass( filmPass );
 
 	composer.addPass( copyPass );
 	copyPass.renderToScreen = true;
