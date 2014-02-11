@@ -22,6 +22,9 @@ var resolutions = {
 
 var vignettePass, hblurPass, vblurPass, renderPass, copyPass, screenPass;
 
+var effectSave, effectBlend, renderTarget, renderTargetParameters;
+
+
 if (!Detector.webgl) {
 	Detector.addGetWebGLMessage();
 	document.getElementById( 'container').innerHTML = "";
@@ -34,25 +37,31 @@ if (!Detector.webgl) {
 function init() {
 	container = document.getElementById('container');
 
-	camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 20000 );
+	camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 200000 );
 	camera.position.y = getY( worldHalfWidth, worldHalfDepth ) * 100 + 100;
 
-	controls = new THREE.FirstPersonControls( camera, container );
+	controls = new THREE.FirstPersonControls( camera );
 
 	setupUI();
 
 	controls.movementSpeed = 1000;
 	controls.lookSpeed = 0.125;
-	controls.lookVertical = false; //temp
+	controls.lookVertical = true;
 	controls.freeze = false; //tmp
 
 	scene = new THREE.Scene();
 
-	// sides
+	scene.fog = new THREE.FogExp2( 0xbbbbbb, 0.00015 );
+
+	var light = new THREE.Color( 0xffffff );
+	var shadow = new THREE.Color( 0x505050 );
 
 	var matrix = new THREE.Matrix4();
 
+	// sides
 	var pxGeometry = new THREE.PlaneGeometry( 100, 100 );
+	pxGeometry.faces[ 0 ].vertexColors.push( light, shadow, light );
+	pxGeometry.faces[ 1 ].vertexColors.push( shadow, shadow, light );
 	pxGeometry.faceVertexUvs[ 0 ][ 0 ][ 0 ].y = 0.5;
 	pxGeometry.faceVertexUvs[ 0 ][ 0 ][ 2 ].y = 0.5;
 	pxGeometry.faceVertexUvs[ 0 ][ 1 ][ 2 ].y = 0.5;
@@ -60,6 +69,8 @@ function init() {
 	pxGeometry.applyMatrix( matrix.makeTranslation( 50, 0, 0 ) );
 
 	var nxGeometry = new THREE.PlaneGeometry( 100, 100 );
+	nxGeometry.faces[ 0 ].vertexColors.push( light, shadow, light );
+	nxGeometry.faces[ 1 ].vertexColors.push( shadow, shadow, light );
 	nxGeometry.faceVertexUvs[ 0 ][ 0 ][ 0 ].y = 0.5;
 	nxGeometry.faceVertexUvs[ 0 ][ 0 ][ 2 ].y = 0.5;
 	nxGeometry.faceVertexUvs[ 0 ][ 1 ][ 2 ].y = 0.5;
@@ -67,31 +78,49 @@ function init() {
 	nxGeometry.applyMatrix( matrix.makeTranslation( - 50, 0, 0 ) );
 
 	var pyGeometry = new THREE.PlaneGeometry( 100, 100 );
+	pyGeometry.faces[ 0 ].vertexColors.push( light, light, light );
+	pyGeometry.faces[ 1 ].vertexColors.push( light, light, light );
 	pyGeometry.faceVertexUvs[ 0 ][ 0 ][ 1 ].y = 0.5;
 	pyGeometry.faceVertexUvs[ 0 ][ 1 ][ 0 ].y = 0.5;
 	pyGeometry.faceVertexUvs[ 0 ][ 1 ][ 1 ].y = 0.5;
 	pyGeometry.applyMatrix( matrix.makeRotationX( - Math.PI / 2 ) );
 	pyGeometry.applyMatrix( matrix.makeTranslation( 0, 50, 0 ) );
 
+	var py2Geometry = new THREE.PlaneGeometry( 100, 100 );
+	py2Geometry.faces[ 0 ].vertexColors.push( light, light, light );
+	py2Geometry.faces[ 1 ].vertexColors.push( light, light, light );
+	py2Geometry.faceVertexUvs[ 0 ][ 0 ][ 1 ].y = 0.5;
+	py2Geometry.faceVertexUvs[ 0 ][ 1 ][ 0 ].y = 0.5;
+	py2Geometry.faceVertexUvs[ 0 ][ 1 ][ 1 ].y = 0.5;
+	py2Geometry.applyMatrix( matrix.makeRotationX( - Math.PI / 2 ) );
+	py2Geometry.applyMatrix( matrix.makeRotationY( Math.PI / 2 ) );
+	py2Geometry.applyMatrix( matrix.makeTranslation( 0, 50, 0 ) );
+
 	var pzGeometry = new THREE.PlaneGeometry( 100, 100 );
+	pzGeometry.faces[ 0 ].vertexColors.push( light, shadow, light );
+	pzGeometry.faces[ 1 ].vertexColors.push( shadow, shadow, light );
 	pzGeometry.faceVertexUvs[ 0 ][ 0 ][ 0 ].y = 0.5;
 	pzGeometry.faceVertexUvs[ 0 ][ 0 ][ 2 ].y = 0.5;
 	pzGeometry.faceVertexUvs[ 0 ][ 1 ][ 2 ].y = 0.5;
 	pzGeometry.applyMatrix( matrix.makeTranslation( 0, 0, 50 ) );
 
 	var nzGeometry = new THREE.PlaneGeometry( 100, 100 );
+	nzGeometry.faces[ 0 ].vertexColors.push( light, shadow, light );
+	nzGeometry.faces[ 1 ].vertexColors.push( shadow, shadow, light );
 	nzGeometry.faceVertexUvs[ 0 ][ 0 ][ 0 ].y = 0.5;
 	nzGeometry.faceVertexUvs[ 0 ][ 0 ][ 2 ].y = 0.5;
 	nzGeometry.faceVertexUvs[ 0 ][ 1 ][ 2 ].y = 0.5;
 	nzGeometry.applyMatrix( matrix.makeRotationY( Math.PI ) );
-	nzGeometry.applyMatrix( matrix.makeTranslation( 0, 0, -50 ) );
+	nzGeometry.applyMatrix( matrix.makeTranslation( 0, 0, - 50 ) );
 
-	//
+
 	var geometry = new THREE.Geometry();
 	var dummy = new THREE.Mesh();
 
 	for ( var z = 0; z < worldDepth; z ++ ) {
+
 		for ( var x = 0; x < worldWidth; x ++ ) {
+
 			var h = getY( x, z );
 
 			dummy.position.x = x * 100 - worldHalfWidth * 100;
@@ -103,38 +132,115 @@ function init() {
 			var pz = getY( x, z + 1 );
 			var nz = getY( x, z - 1 );
 
-			dummy.geometry = pyGeometry;
+			var pxpz = getY( x + 1, z + 1 );
+			var nxpz = getY( x - 1, z + 1 );
+			var pxnz = getY( x + 1, z - 1 );
+			var nxnz = getY( x - 1, z - 1 );
+
+			var a = nx > h || nz > h || nxnz > h ? 0 : 1;
+			var b = nx > h || pz > h || nxpz > h ? 0 : 1;
+			var c = px > h || pz > h || pxpz > h ? 0 : 1;
+			var d = px > h || nz > h || pxnz > h ? 0 : 1;
+
+			if ( a + c > b + d ) {
+
+				dummy.geometry = py2Geometry;
+
+				var colors = dummy.geometry.faces[ 0 ].vertexColors;
+				colors[ 0 ] = b === 0 ? shadow : light;
+				colors[ 1 ] = c === 0 ? shadow : light;
+				colors[ 2 ] = a === 0 ? shadow : light;
+
+				var colors = dummy.geometry.faces[ 1 ].vertexColors;
+				colors[ 0 ] = c === 0 ? shadow : light;
+				colors[ 1 ] = d === 0 ? shadow : light;
+				colors[ 2 ] = a === 0 ? shadow : light;
+
+			} else {
+
+				dummy.geometry = pyGeometry;
+
+				var colors = dummy.geometry.faces[ 0 ].vertexColors;
+				colors[ 0 ] = a === 0 ? shadow : light;
+				colors[ 1 ] = b === 0 ? shadow : light;
+				colors[ 2 ] = d === 0 ? shadow : light;
+
+				var colors = dummy.geometry.faces[ 1 ].vertexColors;
+				colors[ 0 ] = b === 0 ? shadow : light;
+				colors[ 1 ] = c === 0 ? shadow : light;
+				colors[ 2 ] = d === 0 ? shadow : light;
+
+			}
+
 			THREE.GeometryUtils.merge( geometry, dummy );
 
 			if ( ( px != h && px != h + 1 ) || x == 0 ) {
+
 				dummy.geometry = pxGeometry;
+
+				var colors = dummy.geometry.faces[ 0 ].vertexColors;
+				colors[ 0 ] = pxpz > px && x > 0 ? shadow : light;
+				colors[ 2 ] = pxnz > px && x > 0 ? shadow : light;
+
+				var colors = dummy.geometry.faces[ 1 ].vertexColors;
+				colors[ 2 ] = pxnz > px && x > 0 ? shadow : light;
+
 				THREE.GeometryUtils.merge( geometry, dummy );
+
 			}
 
 			if ( ( nx != h && nx != h + 1 ) || x == worldWidth - 1 ) {
+
 				dummy.geometry = nxGeometry;
+
+				var colors = dummy.geometry.faces[ 0 ].vertexColors;
+				colors[ 0 ] = nxnz > nx && x < worldWidth - 1 ? shadow : light;
+				colors[ 2 ] = nxpz > nx && x < worldWidth - 1 ? shadow : light;
+
+				var colors = dummy.geometry.faces[ 1 ].vertexColors;
+				colors[ 2 ] = nxpz > nx && x < worldWidth - 1 ? shadow : light;
+
 				THREE.GeometryUtils.merge( geometry, dummy );
+
 			}
 
 			if ( ( pz != h && pz != h + 1 ) || z == worldDepth - 1 ) {
+
 				dummy.geometry = pzGeometry;
+
+				var colors = dummy.geometry.faces[ 0 ].vertexColors;
+				colors[ 0 ] = nxpz > pz && z < worldDepth - 1 ? shadow : light;
+				colors[ 2 ] = pxpz > pz && z < worldDepth - 1 ? shadow : light;
+
+				var colors = dummy.geometry.faces[ 1 ].vertexColors;
+				colors[ 2 ] = pxpz > pz && z < worldDepth - 1 ? shadow : light;
+
 				THREE.GeometryUtils.merge( geometry, dummy );
+
 			}
 
 			if ( ( nz != h && nz != h + 1 ) || z == 0 ) {
+
 				dummy.geometry = nzGeometry;
+
+				var colors = dummy.geometry.faces[ 0 ].vertexColors;
+				colors[ 0 ] = pxnz > nz && z > 0 ? shadow : light;
+				colors[ 2 ] = nxnz > nz && z > 0 ? shadow : light;
+
+				var colors = dummy.geometry.faces[ 1 ].vertexColors;
+				colors[ 2 ] = nxnz > nz && z > 0 ? shadow : light;
+
 				THREE.GeometryUtils.merge( geometry, dummy );
+
 			}
-
 		}
-
 	}
 
 	var texture = THREE.ImageUtils.loadTexture( 'textures/minecraft/atlas.png' );
 	texture.magFilter = THREE.NearestFilter;
 	texture.minFilter = THREE.LinearMipMapLinearFilter;
 
-	var mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { map: texture, ambient: 0xbbbbbb } ) );
+	var mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { map: texture, ambient: 0xbbbbbb, vertexColors: THREE.VertexColors } ) );
 	scene.add( mesh );
 
 	var ambientLight = new THREE.AmbientLight( 0xcccccc );
@@ -144,22 +250,39 @@ function init() {
 	directionalLight.position.set( 1, 1, 0.5 ).normalize();
 	scene.add( directionalLight );
 
+	addSkybox();
+
 	renderer = new THREE.WebGLRenderer();
+	//renderer.autoClear = false;
 	renderer.setClearColor( 0xbfd1e5, 1 );
 	renderer.setSize( window.innerWidth, window.innerHeight );
 
+	renderTargetParameters = {
+		minFilter: THREE.LinearFilter,
+		magFilter: THREE.LinearFilter,
+		format: THREE.RGBFormat,
+		stencilBuffer: false };
+	renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters  );
+
+	effectSave = new THREE.SavePass( new THREE.WebGLRenderTarget( 800, 600, renderTargetParameters ) );
+
+	effectBlend = new THREE.ShaderPass( THREE.BlendShader, "tDiffuse1" );
+
+	effectBlend.uniforms[ 'tDiffuse2' ].value = effectSave.renderTarget;
+	effectBlend.uniforms[ 'mixRatio' ].value = 0.77;
+
+
 	// Here is the effect for the Oculus Rift
 	// worldScale 100 means that 100 Units == 1m
-	effect = new THREE.OculusRiftEffect( renderer, {worldScale: 100} );
-	effect.setSize( window.innerWidth, window.innerHeight );
-
+	//effect = new THREE.OculusRiftEffect( renderer, {worldScale: 100} );
+	//effect.setSize( window.innerWidth, window.innerHeight );
 
 	//postprocessing
 	renderPass = new THREE.RenderPass( scene, camera );
 
 	vignettePass = new THREE.ShaderPass( THREE.VignetteShader );
-	vignettePass.uniforms[ "darkness" ].value = 1;
-	vignettePass.uniforms[ "offset" ].value = 0.9;
+	vignettePass.uniforms[ "darkness" ].value = 0.5;
+	vignettePass.uniforms[ "offset" ].value = 0.7;
 
 	hblurPass = new THREE.ShaderPass( THREE.HorizontalBlurShader );
 	vblurPass = new THREE.ShaderPass( THREE.VerticalBlurShader );
@@ -169,11 +292,12 @@ function init() {
 	filmPass = new THREE.ShaderPass( THREE.FilmShader );
 	filmPass.uniforms["grayscale"].value = 0;
 	filmPass.uniforms["time"].value = 0.0;
-	filmPass.uniforms["time"].value = 0.0;
-	filmPass.uniforms["nIntensity"].value = 1;
+	filmPass.uniforms["nIntensity"].value = 0.5;
 	filmPass.uniforms["sIntensity"].value = 0.5;
+	filmPass.uniforms["sCount"].value = 1024*8;
 
 	screenPass = new THREE.ShaderPass( THREE.ScreendoorShader );
+
 
 	setupComposer(false);
 
@@ -190,6 +314,10 @@ function init() {
 	window.addEventListener( 'resize', onWindowResize, false );
 	document.addEventListener( 'keydown', keyPressed, false );
 
+	$('#info').on('mouseover mouseout', function(e){
+		controls.freeze = !controls.freeze;
+	});
+
 	guiVisible = true;
 }
 
@@ -199,7 +327,7 @@ function onWindowResize() {
 
 	setupComposer(true);
 
-	effect.setSize( window.innerWidth, window.innerHeight );
+	//effect.setSize( window.innerWidth, window.innerHeight );
 
 	controls.handleResize();
 }
@@ -212,6 +340,25 @@ function keyPressed (event) {
 	} else if (event.keyCode == 62) { // G
 		controls.freeze = !controls.freeze;
 	}
+}
+
+function addSkybox() {
+	var path = "textures/cube/skybox/";
+	var format = '.jpg';
+	var urls = [
+		path + 'px' + format, path + 'nx' + format,
+		path + 'py' + format, path + 'ny' + format,
+		path + 'pz' + format, path + 'nz' + format
+	];
+
+	var textureCube = THREEx.createTextureCube(urls);
+	var mesh = THREEx.createSkymap({
+		textureCube: textureCube,
+		cubeW: 50000,
+		cubeH: 50000,
+		cubeD: 50000
+		});
+	scene.add( mesh );
 }
 
 function generateHeight( width, height ) {
@@ -238,29 +385,45 @@ function getY( x, z ) {
 }
 
 function setupComposer(reset) {
-	composer = new THREE.EffectComposer( renderer );
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderTarget =
+		new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters  );
+	effectSave = new THREE.SavePass(
+		new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters ) );
+
+	effectBlend = new THREE.ShaderPass( THREE.BlendShader, "tDiffuse1" );
+
+	effectBlend.uniforms[ 'tDiffuse2' ].value = effectSave.renderTarget;
+	effectBlend.uniforms[ 'mixRatio' ].value = 0.8;
+
+	composer = new THREE.EffectComposer( renderer, renderTarget );
 
 	composer.addPass( renderPass );
-	//composer.addPass( vignettePass );
+
+
+	composer.addPass( vignettePass );
 
 	if (persistence == 'high') {
-		composer.addPass( hblurPass );
-		composer.addPass( vblurPass );
+		composer.addPass( effectBlend );
+		composer.addPass( effectSave );
+
+		//composer.addPass( hblurPass );
+		//composer.addPass( vblurPass );
 	}
 
 	//screen door
 	screenPass.uniforms["enable"].value = 1;
 	if (resolution == 'dk1') {
-		filmPass.uniforms["sCount"].value = 1024;
+		//filmPass.uniforms["sCount"].value = 1024;
 		screenPass.uniforms["resolution"].value = 6;
 		screenPass.uniforms["opacity"].value = 0.2;
 	} else if (resolution == 'fhd') {
-		filmPass.uniforms["sCount"].value = 2048;
+		//filmPass.uniforms["sCount"].value = 2048;
 		screenPass.uniforms["resolution"].value = 4;
 		screenPass.uniforms["resolution"].value = 4;
 		screenPass.uniforms["opacity"].value = 0.15;			
 	} else if (resolution == 'cv1') {
-		filmPass.uniforms["sCount"].value = 8000;
+		//filmPass.uniforms["sCount"].value = 8000;
 		screenPass.uniforms["resolution"].value = 3;
 		screenPass.uniforms["opacity"].value = 0.1;
 	} else { // cv2 - 4k
@@ -286,6 +449,7 @@ function animate() {
 function render() {
 	controls.update( clock.getDelta() );
 	composer.render();
+
 	//effect.render( scene, camera );
 }
 
