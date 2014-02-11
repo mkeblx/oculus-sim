@@ -4,7 +4,7 @@ var camera, controls, scene, renderer, composer;
 
 var persistence = 'high', resolution = 'dk1';
 
-var mesh;
+var mesh, skymap;
 
 var worldWidth = 128, worldDepth = 128,
 worldHalfWidth = worldWidth / 2, worldHalfDepth = worldDepth / 2,
@@ -12,16 +12,14 @@ data = generateHeight( worldWidth, worldDepth );
 
 var clock = new THREE.Clock();
 
-var resolutions = {
-	dk1: {w: 1280, h: 800},
-	fhd: {w: 1920, h: 1080},
-	cv1: {w: 2560, h: 1440},
-	_4k:  {w: 3840, h: 2160}
-};
-
+var resolutions = [
+	{name: 'dk1', w: 1280, h: 800},
+	{name: 'fhd', w: 1920, h: 1080},
+	{name: 'cv1', w: 2560, h: 1440},
+	{name: 'cv2', w: 3840, h: 2160}
+];
 
 var vignettePass, hblurPass, vblurPass, renderPass, copyPass, screenPass;
-
 var effectSave, effectBlend, renderTarget, renderTargetParameters;
 
 
@@ -333,12 +331,22 @@ function onWindowResize() {
 }
 
 function keyPressed (event) {
-	if (event.keyCode === 72) { // H
+	var code = event.keyCode;
+
+	if (code === 72) { // H
 		guiVisible = !guiVisible;
 		document.getElementById('info').style.display = guiVisible ? "block" : "none";
 		stats.domElement.style.display = guiVisible ? "block" : "none";
-	} else if (event.keyCode == 62) { // G
+	} else if (code == 62) { // G
 		controls.freeze = !controls.freeze;
+	} else if (code == 80) { // P 
+		$('#toggle-persistence').click();
+	} else if (code >= 49 && code <= 52) { // 1-4
+		var i = code - 49;
+		var res = resolutions[i];
+		$('#resolution-select').find("[data-id='"+res.name+"']").click();
+	} else if (code == 75) { // K
+		skymap.visible = !skymap.visible;
 	}
 }
 
@@ -352,13 +360,13 @@ function addSkybox() {
 	];
 
 	var textureCube = THREEx.createTextureCube(urls);
-	var mesh = THREEx.createSkymap({
+	skymap = THREEx.createSkymap({
 		textureCube: textureCube,
 		cubeW: 50000,
 		cubeH: 50000,
 		cubeD: 50000
 		});
-	scene.add( mesh );
+	scene.add( skymap );
 }
 
 function generateHeight( width, height ) {

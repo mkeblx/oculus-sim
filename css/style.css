@@ -109,6 +109,18 @@ a:hover {
 
 }
 
+kbd {
+	font-weight: 300;
+	font-family: monospace;
+	font-size: 11px;
+	border-radius: 3px;
+	border: 1px solid #ccc;
+	background-color: #f5f5f5;
+	padding: 2px 4px;
+	margin-left: 5px;
+	text-align: center;
+}
+
 .hide {
 	display: none;
 }
