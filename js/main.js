@@ -411,14 +411,6 @@ function setupComposer(reset) {
 
 	composer.addPass( vignettePass );
 
-	if (persistence == 'high') {
-		composer.addPass( effectBlend );
-		composer.addPass( effectSave );
-
-		//composer.addPass( hblurPass );
-		//composer.addPass( vblurPass );
-	}
-
 	//screen door
 	screenPass.uniforms["enable"].value = 1;
 	if (resolution == 'dk1') {
@@ -438,6 +430,14 @@ function setupComposer(reset) {
 		screenPass.uniforms["resolution"].value = 2;
 		screenPass.uniforms["opacity"].value = 0.06;
 		//screenPass.uniforms["enable"].value = 0;
+	}
+
+	if (persistence == 'high') {
+		composer.addPass( effectBlend );
+		composer.addPass( effectSave );
+
+		//composer.addPass( hblurPass );
+		//composer.addPass( vblurPass );
 	}
 	
 	composer.addPass( screenPass );
