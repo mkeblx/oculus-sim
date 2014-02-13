@@ -260,7 +260,7 @@ function init() {
 		magFilter: THREE.LinearFilter,
 		format: THREE.RGBFormat,
 		stencilBuffer: false };
-	renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters  );
+	//renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters  );
 
 	effectSave = new THREE.SavePass( new THREE.WebGLRenderTarget( 800, 600, renderTargetParameters ) );
 
