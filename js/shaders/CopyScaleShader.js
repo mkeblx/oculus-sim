@@ -28,7 +28,7 @@ THREE.CopyScaleShader = {
 
 	fragmentShader: [
 
-		"uniform sampler2D tDiffuseS;",
+		"uniform sampler2D tDiffuse;",
 
 		"varying vec2 vUv;",
 
@@ -36,7 +36,10 @@ THREE.CopyScaleShader = {
 
 			"vec4 texel = texture2D( tDiffuse, vUv );",
 			"gl_FragColor = texel;",
-			"gl_FragColor.r = 0.0;",
+			/* "gl_FragColor.r = 1.0;",
+			"if( gl_FragCoord.x > 100.0 ) {",
+			"	gl_FragColor.r = 0.0;",
+			"}", */
 
 		"}"
 

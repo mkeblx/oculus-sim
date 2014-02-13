@@ -28,8 +28,8 @@ THREE.ScalingPass = function ( renderTarget ) {
 
 	var materialScreen = new THREE.ShaderMaterial( {
 		uniforms: { tDiffuseS: { type: "t", value: null } },
-		vertexShader: csshader.vertexShader,
-		fragmentShader: csshader.fragmentShader,
+		vertexShader: csshader.material.vertexShader,
+		fragmentShader: csshader.material.fragmentShader,
 
 		depthWrite: false
 
@@ -45,7 +45,7 @@ THREE.ScalingPass = function ( renderTarget ) {
 
 
 
-	this.textureID = "tDiffuseS";
+	this.textureID = "tDiffuse";
 
 	this.scene = sceneRTT;
 	this.camera = cameraRTT;
@@ -72,9 +72,10 @@ THREE.ScalingPass = function ( renderTarget ) {
 	}
 
 	this.enabled = true;
-	this.needsSwap = false;
+	this.needsSwap = true;
 	this.clear = false; //TODO: true?
-
+	
+	this.renderToScreen = false;
 };
 
 THREE.ScalingPass.prototype = {
@@ -90,7 +91,8 @@ THREE.ScalingPass.prototype = {
 		this.quad.material = this.material;
 		
 
-		renderer.render( this.scene, this.camera, this.renderTarget, this.clear );
+		//renderer.render( this.scene, this.camera, this.renderTarget, this.clear );
+		renderer.render( this.scene, this.camera, writeBuffer, this.clear );
 
 	}
 

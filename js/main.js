@@ -275,7 +275,6 @@ function init() {
 
 
 	var rtt_params = { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBFormat };
-	//rtTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, rtt_params );
 	scalerPass = new THREE.ScalingPass( new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, rtt_params ) );
 
 	//END second pass
