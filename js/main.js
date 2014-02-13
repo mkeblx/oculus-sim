@@ -462,9 +462,10 @@ function setupComposer(reset) {
 		//composer.addPass( hblurPass );
 		//composer.addPass( vblurPass );
 	}
-	
 	composer.addPass( screenPass );
+	
 	//composer.addPass( filmPass );
+
 
 	composer.addPass( copyPass );
 	copyPass.renderToScreen = true;

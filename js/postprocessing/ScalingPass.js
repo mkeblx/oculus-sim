@@ -19,29 +19,11 @@ THREE.ScalingPass = function ( renderTarget ) {
 	lightRTT.position.set( 0, 0, -1 ).normalize();
 	sceneRTT.add( lightRTT );
 
-	
-
 	cameraRTT = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, -10000, 10000 );
 	cameraRTT.position.z = 100;
 
-	//var csshader = new THREE.ShaderPass( THREE.CopyScaleShader, "tDiffuseS" );
-	//this.uniforms = THREE.UniformsUtils.clone( csshader.uniforms );
-
-	/*var materialScreen = new THREE.ShaderMaterial( {
-		uniforms: this.uniforms,
-		vertexShader: csshader.material.vertexShader,
-		fragmentShader: csshader.material.fragmentShader,
-
-		depthWrite: false
-
-	} );*/
 
 	var planeRTT = new THREE.PlaneGeometry( window.innerWidth, window.innerHeight );
-
-
-
-	//END setting up scene
-
 
 
 	this.textureID = "tDiffuseS";
@@ -50,10 +32,9 @@ THREE.ScalingPass = function ( renderTarget ) {
 	this.camera = cameraRTT;
 	
 
-	var shader = new THREE.ShaderPass( THREE.CopyScaleShader, "tDiffuseS" );
+	var shader = new THREE.ShaderPass( THREE.CopyScaleShader, this.textureID );
 
-	this.uniforms = THREE.UniformsUtils.clone( shader.uniforms );
-
+	this.uniforms = shader.uniforms;
 	this.material = shader.material;
 
 	quad = new THREE.Mesh( planeRTT, this.material );
@@ -81,14 +62,12 @@ THREE.ScalingPass.prototype = {
 
 	render: function ( renderer, writeBuffer, readBuffer, delta ) {
 
-		if ( this.uniforms[ this.textureID ] ) {
+		//if ( this.uniforms[ this.textureID ] ) {
 
 			this.uniforms[ this.textureID ].value = readBuffer;
-
-		}
+		//}
 
 		this.quad.material = this.material;
-		
 
 		//renderer.render( this.scene, this.camera, this.renderTarget, this.clear );
 		renderer.render( this.scene, this.camera, writeBuffer, this.clear );

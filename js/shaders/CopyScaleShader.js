@@ -28,18 +28,18 @@ THREE.CopyScaleShader = {
 
 	fragmentShader: [
 
-		"uniform sampler2D tDiffuse;",
+		"uniform sampler2D tDiffuseS;",
 
 		"varying vec2 vUv;",
 
 		"void main() {",
 
-			"vec4 texel = texture2D( tDiffuse, vUv );",
+			"vec4 texel = texture2D( tDiffuseS, vUv );",
 			"gl_FragColor = texel;",
-			/* "gl_FragColor.r = 1.0;",
+			 "gl_FragColor.r = 1.0;",
 			"if( gl_FragCoord.x > 100.0 ) {",
 			"	gl_FragColor.r = 0.0;",
-			"}", */
+			"}", 
 
 		"}"
 
