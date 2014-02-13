@@ -34,15 +34,30 @@ THREE.ScreendoorShader = {
 		"varying vec2 vUv;",
 
 		"void main( void ) {",
-			"vec4 color = texture2D( tDiffuse, vUv );",
+			"vec4 color;",
+			"vec3 col;",
 
-			"vec2 sc = vec2( sin( vUv.y * resolution ), cos( vUv.y * resolution ) );",
+			"if( enable ) {",
+				"vec2 mod_vUv = vUv;",
+				"float scaler = gl_FragCoord.x / vUv.x;",
+				"mod_vUv.x -= mod( gl_FragCoord.x, resolution ) * 0.001;",
+				"mod_vUv.y -= mod( gl_FragCoord.y, resolution ) * 0.001;",
 
-			"vec3 col = vec3(color);",
-			
-			"if ( enable ) {",
+				"color = texture2D( tDiffuse, mod_vUv );",
+
+				//"vec2 sc = vec2( sin( vUv.y * resolution ), cos( vUv.y * resolution ) );",
+
+				"col = vec3(color);",
+
+
 				"col -= mod( gl_FragCoord.x, resolution ) < 1.0 ? opacity : 0.0;",
 				"col -= mod( gl_FragCoord.y, resolution ) < 1.0 ? opacity : 0.0;",
+			"}",
+
+			"else {",
+				"color = texture2D( tDiffuse, vUv );",
+				"vec3 col = vec3(color);",
+
 			"}",
 			
 			"gl_FragColor = vec4( col, 1 );",

@@ -274,7 +274,7 @@ function init() {
 	//then, set up a second scene that has a textured plane
 
 
-	var rtt_params = { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBFormat };
+	var rtt_params = { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, format: THREE.RGBFormat };
 	scalerPass = new THREE.ScalingPass( new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, rtt_params ) );
 
 	//END second pass

@@ -37,7 +37,7 @@ THREE.CopyScaleShader = {
 			"vec4 texel = texture2D( tDiffuseS, vUv );",
 			"gl_FragColor = texel;",
 			 "gl_FragColor.r = 1.0;",
-			"if( gl_FragCoord.x > 100.0 ) {",
+			"if( mod( gl_FragCoord.x, 20.0 ) > 10.0 ) {",
 			"	gl_FragColor.r = 0.0;",
 			"}", 
 
