@@ -39,6 +39,7 @@ THREE.ScreendoorShader = {
 
 			"if( enable ) {",
 				"vec2 mod_vUv = vUv;",
+				"float scaler = gl_FragCoord.x / vUv.x;",
 				"mod_vUv.x -= mod( gl_FragCoord.x, resolution ) * 0.001;",
 				"mod_vUv.y -= mod( gl_FragCoord.y, resolution ) * 0.001;",
 

@@ -269,6 +269,51 @@ function init() {
 	effectBlend.uniforms[ 'tDiffuse2' ].value = effectSave.renderTarget;
 	effectBlend.uniforms[ 'mixRatio' ].value = 0.77;
 
+	//Trying to add a second pass!
+	//render the scene to a texture in the first pass.
+	//then, set up a second scene that has a textured plane
+
+	sceneRTT = new THREE.Scene();
+
+	var lightRTT = new THREE.DirectionalLight( 0xffffff );
+	lightRTT.position.set( 0, 0, 1 ).normalize();
+	sceneRTT.add( lightRTT );
+
+	lightRTT = new THREE.DirectionalLight( 0xffaaaa, 1.5 );
+	lightRTT.position.set( 0, 0, -1 ).normalize();
+	sceneRTT.add( lightRTT );
+
+	var rtt_params = { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBFormat };
+
+	rtTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, rtt_params );
+
+	var materialScreen = new THREE.ShaderMaterial( {
+		uniforms: { tDiffuse: { type: "t", value: rtTexture } },
+		vertexShader: document.getElementById( 'vertexShader' ).textContent,
+		fragmentShader: document.getElementById( 'fragment_shader_screen' ).textContent,
+
+		depthWrite: false
+
+	} );
+
+	material = new THREE.ShaderMaterial( {
+
+		uniforms: { time: { type: "f", value: 0.0 } },
+		vertexShader: document.getElementById( 'vertexShader' ).textContent,
+		fragmentShader: document.getElementById( 'fragment_shader_pass_1' ).textContent
+
+	} );
+
+	var planeRTT = new THREE.PlaneGeometry( window.innerWidth, window.innerHeight );
+
+	quad = new THREE.Mesh( planeRTT, material );
+	quad.position.z = -100;
+	sceneRTT.add( quad );
+
+	//END second pass
+
+
+
 
 	// Here is the effect for the Oculus Rift
 	// worldScale 100 means that 100 Units == 1m
@@ -394,10 +439,20 @@ function getY( x, z ) {
 
 function setupComposer(reset) {
 	renderer.setSize( window.innerWidth, window.innerHeight );
+	
+	//changing resolution here changes the output resolution
 	renderTarget =
-		new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters  );
+		new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters  ); 
+	
+	var new_rtt_params = {
+		minFilter: THREE.NearestFilter,
+		magFilter: THREE.NearestFilter,
+		format: THREE.RGBFormat,
+		stencilBuffer: false };
+
+	//changing resolution here changes the FIR motion blur resolution only.
 	effectSave = new THREE.SavePass(
-		new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters ) );
+		new THREE.WebGLRenderTarget( 10, 10, new_rtt_params ) );
 
 	effectBlend = new THREE.ShaderPass( THREE.BlendShader, "tDiffuse1" );
 

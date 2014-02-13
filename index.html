@@ -40,6 +40,51 @@
 	</div>
 </div>
 
+<script id="fragment_shader_screen" type="x-shader/x-fragment">
+
+	varying vec2 vUv;
+	uniform sampler2D tDiffuse;
+
+	void main() {
+
+		gl_FragColor = texture2D( tDiffuse, vUv );
+
+	}
+
+</script>
+
+<script id="fragment_shader_pass_1" type="x-shader/x-fragment">
+
+	varying vec2 vUv;
+	uniform float time;
+
+	void main() {
+
+		float r = vUv.x;
+		if( vUv.y < 0.5 ) r = 0.0;
+		float g = vUv.y;
+		if( vUv.x < 0.5 ) g = 0.0;
+
+		gl_FragColor = vec4( r, g, time, 1.0 );
+
+	}
+
+</script>
+
+<script id="vertexShader" type="x-shader/x-vertex">
+
+	varying vec2 vUv;
+
+	void main() {
+
+		vUv = uv;
+		gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+	}
+
+</script>
+
+
 <script src="js/libs/lodash.min.js"></script>
 <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
 <script src="js/libs/tween.min.js"></script>
