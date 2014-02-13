@@ -270,45 +270,13 @@ function init() {
 	effectBlend.uniforms[ 'mixRatio' ].value = 0.77;
 
 	//Trying to add a second pass!
-	//render the scene to a texture in the first pass.
+	//render the scene in the first pass.
 	//then, set up a second scene that has a textured plane
 
-	sceneRTT = new THREE.Scene();
-
-	var lightRTT = new THREE.DirectionalLight( 0xffffff );
-	lightRTT.position.set( 0, 0, 1 ).normalize();
-	sceneRTT.add( lightRTT );
-
-	lightRTT = new THREE.DirectionalLight( 0xffaaaa, 1.5 );
-	lightRTT.position.set( 0, 0, -1 ).normalize();
-	sceneRTT.add( lightRTT );
 
 	var rtt_params = { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBFormat };
-
-	rtTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, rtt_params );
-
-	var materialScreen = new THREE.ShaderMaterial( {
-		uniforms: { tDiffuse: { type: "t", value: rtTexture } },
-		vertexShader: document.getElementById( 'vertexShader' ).textContent,
-		fragmentShader: document.getElementById( 'fragment_shader_screen' ).textContent,
-
-		depthWrite: false
-
-	} );
-
-	material = new THREE.ShaderMaterial( {
-
-		uniforms: { time: { type: "f", value: 0.0 } },
-		vertexShader: document.getElementById( 'vertexShader' ).textContent,
-		fragmentShader: document.getElementById( 'fragment_shader_pass_1' ).textContent
-
-	} );
-
-	var planeRTT = new THREE.PlaneGeometry( window.innerWidth, window.innerHeight );
-
-	quad = new THREE.Mesh( planeRTT, material );
-	quad.position.z = -100;
-	sceneRTT.add( quad );
+	//rtTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, rtt_params );
+	scalerPass = new THREE.ScalingPass( new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, rtt_params ) );
 
 	//END second pass
 
@@ -463,6 +431,7 @@ function setupComposer(reset) {
 
 	composer.addPass( renderPass );
 
+	composer.addPass(scalerPass);
 
 	composer.addPass( vignettePass );
 

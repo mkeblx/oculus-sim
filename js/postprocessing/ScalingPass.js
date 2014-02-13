@@ -5,12 +5,53 @@
 
 THREE.ScalingPass = function ( renderTarget ) {
 
-	if ( THREE.CopyShader === undefined )
-		console.error( "THREE.ScalingPass relies on THREE.CopyShader" );
+	if ( THREE.CopyScaleShader === undefined )
+		console.error( "THREE.ScalingPass relies on THREE.CopyScaleShader" );
 
-	var shader = THREE.CopyShader;
+	//Setting up scene
+	sceneRTT = new THREE.Scene();
 
-	this.textureID = "tDiffuse";
+	var lightRTT = new THREE.DirectionalLight( 0xffffff );
+	lightRTT.position.set( 0, 0, 1 ).normalize();
+	sceneRTT.add( lightRTT );
+
+	lightRTT = new THREE.DirectionalLight( 0xffaaaa, 1.5 );
+	lightRTT.position.set( 0, 0, -1 ).normalize();
+	sceneRTT.add( lightRTT );
+
+	
+
+	cameraRTT = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, -10000, 10000 );
+	cameraRTT.position.z = 100;
+
+	var csshader = new THREE.ShaderPass( THREE.CopyScaleShader, "tDiffuseS" );
+
+	var materialScreen = new THREE.ShaderMaterial( {
+		uniforms: { tDiffuseS: { type: "t", value: null } },
+		vertexShader: csshader.vertexShader,
+		fragmentShader: csshader.fragmentShader,
+
+		depthWrite: false
+
+	} );
+
+	var planeRTT = new THREE.PlaneGeometry( window.innerWidth, window.innerHeight );
+
+	quad = new THREE.Mesh( planeRTT, materialScreen );
+	quad.position.z = -100;
+	sceneRTT.add( quad );
+
+	//END setting up scene
+
+
+
+	this.textureID = "tDiffuseS";
+
+	this.scene = sceneRTT;
+	this.camera = cameraRTT;
+	this.quad = quad;
+
+	var shader = THREE.CopyScaleShader;
 
 	this.uniforms = THREE.UniformsUtils.clone( shader.uniforms );
 
@@ -32,7 +73,7 @@ THREE.ScalingPass = function ( renderTarget ) {
 
 	this.enabled = true;
 	this.needsSwap = false;
-	this.clear = false;
+	this.clear = false; //TODO: true?
 
 };
 
@@ -46,9 +87,10 @@ THREE.ScalingPass.prototype = {
 
 		}
 
-		THREE.EffectComposer.quad.material = this.material;
+		this.quad.material = this.material;
+		
 
-		renderer.render( THREE.EffectComposer.scene, THREE.EffectComposer.camera, this.renderTarget, this.clear );
+		renderer.render( this.scene, this.camera, this.renderTarget, this.clear );
 
 	}
 
