@@ -24,32 +24,31 @@ THREE.ScalingPass = function ( renderTarget ) {
 	cameraRTT = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, -10000, 10000 );
 	cameraRTT.position.z = 100;
 
-	var csshader = new THREE.ShaderPass( THREE.CopyScaleShader, "tDiffuseS" );
+	//var csshader = new THREE.ShaderPass( THREE.CopyScaleShader, "tDiffuseS" );
+	//this.uniforms = THREE.UniformsUtils.clone( csshader.uniforms );
 
-	var materialScreen = new THREE.ShaderMaterial( {
-		uniforms: { tDiffuseS: { type: "t", value: null } },
+	/*var materialScreen = new THREE.ShaderMaterial( {
+		uniforms: this.uniforms,
 		vertexShader: csshader.material.vertexShader,
 		fragmentShader: csshader.material.fragmentShader,
 
 		depthWrite: false
 
-	} );
+	} );*/
 
 	var planeRTT = new THREE.PlaneGeometry( window.innerWidth, window.innerHeight );
 
-	quad = new THREE.Mesh( planeRTT, materialScreen );
-	quad.position.z = -100;
-	sceneRTT.add( quad );
+
 
 	//END setting up scene
 
 
 
-	this.textureID = "tDiffuse";
+	this.textureID = "tDiffuseS";
 
 	this.scene = sceneRTT;
 	this.camera = cameraRTT;
-	this.quad = quad;
+	
 
 	var shader = THREE.CopyScaleShader;
 
@@ -62,6 +61,12 @@ THREE.ScalingPass = function ( renderTarget ) {
 		fragmentShader: shader.fragmentShader
 
 	} );
+
+	quad = new THREE.Mesh( planeRTT, this.material );
+	quad.position.z = -100;
+	sceneRTT.add( quad );
+
+	this.quad = quad;
 
 	this.renderTarget = renderTarget;
 
