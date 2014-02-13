@@ -50,17 +50,11 @@ THREE.ScalingPass = function ( renderTarget ) {
 	this.camera = cameraRTT;
 	
 
-	var shader = THREE.CopyScaleShader;
+	var shader = new THREE.ShaderPass( THREE.CopyScaleShader, "tDiffuseS" );
 
 	this.uniforms = THREE.UniformsUtils.clone( shader.uniforms );
 
-	this.material = new THREE.ShaderMaterial( {
-
-		uniforms: this.uniforms,
-		vertexShader: shader.vertexShader,
-		fragmentShader: shader.fragmentShader
-
-	} );
+	this.material = shader.material;
 
 	quad = new THREE.Mesh( planeRTT, this.material );
 	quad.position.z = -100;
