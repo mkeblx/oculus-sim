@@ -6,6 +6,8 @@ var persistence = 'high', resolution = 'dk1';
 
 var mesh, skymap;
 
+var rtt_params;
+
 var worldWidth = 100, worldDepth = 100,
 worldHalfWidth = worldWidth / 2, worldHalfDepth = worldDepth / 2,
 data = generateHeight( worldWidth, worldDepth );
@@ -265,9 +267,9 @@ function init() {
 		magFilter: THREE.LinearFilter,
 		format: THREE.RGBFormat,
 		stencilBuffer: false };
-	//renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters  );
+	renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters  );
 
-	effectSave = new THREE.SavePass( new THREE.WebGLRenderTarget( 800, 600, renderTargetParameters ) );
+	effectSave = new THREE.SavePass( new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters ) );
 
 	effectBlend = new THREE.ShaderPass( THREE.BlendShader, "tDiffuse1" );
 
@@ -280,7 +282,7 @@ function init() {
 	//then, set up a second scene that has a textured plane
 
 
-	var rtt_params = { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, format: THREE.RGBFormat };
+	rtt_params = { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, format: THREE.RGBFormat };
 	scalerPass = new THREE.ScalingPass( new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, rtt_params ) );
 
 	//END second pass
@@ -294,7 +296,7 @@ function init() {
 	//effect.setSize( window.innerWidth, window.innerHeight );
 
 	//postprocessing
-	var specBuf =  new THREE.WebGLRenderTarget( 100, 100, rtt_params );
+	var specBuf =  new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, rtt_params );
 	renderPass = new THREE.RenderPass( scene, camera, specBuf );
 
 	vignettePass = new THREE.ShaderPass( THREE.VignetteShader );
@@ -345,7 +347,7 @@ function onWindowResize() {
 
 	setupComposer(true);
 
-	effect.setSize( window.innerWidth, window.innerHeight );
+	//effect.setSize( window.innerWidth, window.innerHeight );
 
 	controls.handleResize();
 }
@@ -454,8 +456,7 @@ function getY( x, z ) {
 }
 
 function setupComposer(reset) {
-	//this is the display window resolution
-
+	
 	switch (resolution) {
 		case 'dk1':
 			W = _W*0.5, H = _H*0.5;
@@ -475,11 +476,17 @@ function setupComposer(reset) {
 			break;
 	}
 
+	//this is the display window resolution
 	renderer.setSize( window.innerWidth, window.innerHeight );
+
+	var specBuf =  new THREE.WebGLRenderTarget( W, H, rtt_params );
+	renderPass = new THREE.RenderPass( scene, camera, specBuf );
+	scalerPass.uniforms[ 'tDiffuseS' ].value = renderPass.specialBuf;
+
 	
 	//changing resolution here changes the output resolution, which is upscaled to the resolution above
-	renderTarget =
-		new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters  ); 
+	renderTarget = new THREE.WebGLRenderTarget( W, H, renderTargetParameters  ); 
+
 	
 	var new_rtt_params = {
 		minFilter: THREE.NearestFilter,
@@ -537,11 +544,10 @@ function setupComposer(reset) {
 		//composer.addPass( hblurPass );
 		//composer.addPass( vblurPass );
 	}
+
+	//composer.addPass( filmPass );
 	composer.addPass( screenPass );
 	
-	//composer.addPass( filmPass );
-	//composer.addPass( screenPass );
-	composer.addPass( filmPass );
 
 
 	composer.addPass( copyPass );
