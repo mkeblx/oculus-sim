@@ -288,7 +288,8 @@ function init() {
 	//effect.setSize( window.innerWidth, window.innerHeight );
 
 	//postprocessing
-	renderPass = new THREE.RenderPass( scene, camera );
+	var specBuf =  new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, rtt_params );
+	renderPass = new THREE.RenderPass( scene, camera, specBuf );
 
 	vignettePass = new THREE.ShaderPass( THREE.VignetteShader );
 	vignettePass.uniforms[ "darkness" ].value = 0.5;
@@ -305,6 +306,8 @@ function init() {
 	filmPass.uniforms["nIntensity"].value = 0.5;
 	filmPass.uniforms["sIntensity"].value = 0.5;
 	filmPass.uniforms["sCount"].value = 1024*8;
+
+	scalerPass.uniforms[ 'tDiffuseS' ].value = renderPass.specialBuf;
 
 	screenPass = new THREE.ShaderPass( THREE.ScreendoorShader );
 
@@ -405,9 +408,10 @@ function getY( x, z ) {
 }
 
 function setupComposer(reset) {
+	//this is the display window resolution
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	
-	//changing resolution here changes the output resolution
+	//changing resolution here changes the output resolution, which is upscaled to the resolution above
 	renderTarget =
 		new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters  ); 
 	
@@ -425,6 +429,8 @@ function setupComposer(reset) {
 
 	effectBlend.uniforms[ 'tDiffuse2' ].value = effectSave.renderTarget;
 	effectBlend.uniforms[ 'mixRatio' ].value = 0.8;
+
+	scalerPass.uniforms[ 'tDiffuseS' ].value = renderPass.specialBuf;
 
 	composer = new THREE.EffectComposer( renderer, renderTarget );
 

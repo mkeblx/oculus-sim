@@ -64,10 +64,10 @@ THREE.ScalingPass.prototype = {
 
 		//if ( this.uniforms[ this.textureID ] ) {
 
-			this.uniforms[ this.textureID ].value = readBuffer;
+			//this.uniforms[ this.textureID ].value = readBuffer;
 		//}
 
-		this.quad.material = this.material;
+		//this.quad.material = this.material;
 
 		//renderer.render( this.scene, this.camera, this.renderTarget, this.clear );
 		renderer.render( this.scene, this.camera, writeBuffer, this.clear );
