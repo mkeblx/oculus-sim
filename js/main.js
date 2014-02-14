@@ -250,7 +250,7 @@ function init() {
 
 	addSkybox();
 
-	renderer = new THREE.WebGLRenderer();
+	renderer = new THREE.WebGLRenderer({ antialias: true });
 	//renderer.autoClear = false;
 	renderer.setClearColor( 0xbfd1e5, 1 );
 	renderer.setSize( window.innerWidth, window.innerHeight );
@@ -288,7 +288,7 @@ function init() {
 	//effect.setSize( window.innerWidth, window.innerHeight );
 
 	//postprocessing
-	var specBuf =  new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, rtt_params );
+	var specBuf =  new THREE.WebGLRenderTarget( 100, 100, rtt_params );
 	renderPass = new THREE.RenderPass( scene, camera, specBuf );
 
 	vignettePass = new THREE.ShaderPass( THREE.VignetteShader );
@@ -423,7 +423,7 @@ function setupComposer(reset) {
 
 	//changing resolution here changes the FIR motion blur resolution only.
 	effectSave = new THREE.SavePass(
-		new THREE.WebGLRenderTarget( 10, 10, new_rtt_params ) );
+		new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, new_rtt_params ) );
 
 	effectBlend = new THREE.ShaderPass( THREE.BlendShader, "tDiffuse1" );
 
