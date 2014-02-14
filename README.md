@@ -12,5 +12,4 @@ Viewable [here](http://vr.mkeblx.net/oculus-sim).
 * side by side comparison render
 * sensor drift => camera exhibits a slow but steady rotation
 * scene loading: multiple scenes, such as tuscany
-* control render or sampling to improve screen representation
 * enable finer grain control of shader effects

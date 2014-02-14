@@ -6,7 +6,7 @@ var persistence = 'high', resolution = 'dk1';
 
 var mesh, skymap;
 
-var worldWidth = 128, worldDepth = 128,
+var worldWidth = 100, worldDepth = 100,
 worldHalfWidth = worldWidth / 2, worldHalfDepth = worldDepth / 2,
 data = generateHeight( worldWidth, worldDepth );
 
@@ -23,6 +23,9 @@ var vignettePass, hblurPass, vblurPass, renderPass, copyPass, screenPass;
 var effectSave, effectBlend, renderTarget, renderTargetParameters;
 
 
+var W = 1280, H = 800, Z = 1;
+var _W = 1280, _H = 800, _Z = 1;
+
 if (!Detector.webgl) {
 	Detector.addGetWebGLMessage();
 	document.getElementById( 'container').innerHTML = "";
@@ -35,8 +38,9 @@ if (!Detector.webgl) {
 function init() {
 	container = document.getElementById('container');
 
-	camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 200000 );
-	camera.position.y = getY( worldHalfWidth, worldHalfDepth ) * 100 + 100;
+	console.log(W, H, W/ H, window.innerWidth/ window.innerHeight);
+	camera = new THREE.PerspectiveCamera(95, W / H, 1, 200000 );
+	camera.position.y = getY( worldHalfWidth, worldHalfDepth ) * 100 + 700;
 
 	controls = new THREE.FirstPersonControls( camera );
 
@@ -241,6 +245,8 @@ function init() {
 	var mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { map: texture, ambient: 0xbbbbbb, vertexColors: THREE.VertexColors } ) );
 	scene.add( mesh );
 
+	addText();
+
 	var ambientLight = new THREE.AmbientLight( 0xcccccc );
 	scene.add( ambientLight );
 
@@ -253,7 +259,6 @@ function init() {
 	renderer = new THREE.WebGLRenderer({ antialias: true });
 	//renderer.autoClear = false;
 	renderer.setClearColor( 0xbfd1e5, 1 );
-	renderer.setSize( window.innerWidth, window.innerHeight );
 
 	renderTargetParameters = {
 		minFilter: THREE.LinearFilter,
@@ -268,6 +273,7 @@ function init() {
 
 	effectBlend.uniforms[ 'tDiffuse2' ].value = effectSave.renderTarget;
 	effectBlend.uniforms[ 'mixRatio' ].value = 0.77;
+
 
 	//Trying to add a second pass!
 	//render the scene in the first pass.
@@ -311,7 +317,6 @@ function init() {
 
 	screenPass = new THREE.ShaderPass( THREE.ScreendoorShader );
 
-
 	setupComposer(false);
 
 	container.innerHTML = "";
@@ -324,7 +329,7 @@ function init() {
 	container.appendChild( stats.domElement );
 
 	// GUI
-	window.addEventListener( 'resize', onWindowResize, false );
+	window.addEventListener( 'resize', _.throttle(onWindowResize, 1000/3), false );
 	document.addEventListener( 'keydown', keyPressed, false );
 
 	$('#info').on('mouseover mouseout', function(e){
@@ -340,7 +345,7 @@ function onWindowResize() {
 
 	setupComposer(true);
 
-	//effect.setSize( window.innerWidth, window.innerHeight );
+	effect.setSize( window.innerWidth, window.innerHeight );
 
 	controls.handleResize();
 }
@@ -365,6 +370,47 @@ function keyPressed (event) {
 	}
 }
 
+function addText() {
+
+	var canvas	= document.createElement( 'canvas' );
+	var s = 2;
+	canvas.width	= 300*s;
+	canvas.height	= 200*s;
+	var context	= canvas.getContext( '2d' );
+	context.fillStyle = "white";
+	context.fillRect(0,0,canvas.width, canvas.height);
+	context.lineWidth = 10*s;
+	context.strokeStyle = '#000';
+	context.strokeRect( 0, 0, canvas.width, canvas.height );
+	context.font	= "bold "+60*s+"px Verdana";
+	context.fillStyle = '#000';
+	context.fillText('oculus', 40*s, s*90);
+	context.font	= "bold "+28*s+"px Verdana";
+	context.fillStyle = '#000';
+	context.fillText('rift simulator', s*45, s*125);
+	context.font	= "bold "+6*s+"px Verdana";
+	context.fillStyle = '#000';
+	context.fillText('“The future is already here— it\'s just not evenly distributed”', 50*s, 145*s);	
+	var texture = new THREE.Texture( canvas );
+	texture.needsUpdate	= true;
+	texture.anisotropy	= 16;
+
+	var geometry	= new THREE.PlaneGeometry(1,canvas.height/canvas.width);
+	var material	= new THREE.MeshBasicMaterial();
+	material.map	= texture;
+	material.side	= THREE.DoubleSide;
+
+	var mesh	= new THREE.Mesh(geometry, material);
+	scene.add(mesh);
+
+	mesh.scale.set(500, 500, 500);
+
+	mesh.position.x = 1000;
+	mesh.position.y = camera.position.y;
+	mesh.position.z = camera.position.z;
+	mesh.rotation.y = -Math.PI/2;
+}
+
 function addSkybox() {
 	var path = "textures/cube/skybox/";
 	var format = '.jpg';
@@ -377,9 +423,9 @@ function addSkybox() {
 	var textureCube = THREEx.createTextureCube(urls);
 	skymap = THREEx.createSkymap({
 		textureCube: textureCube,
-		cubeW: 50000,
-		cubeH: 50000,
-		cubeD: 50000
+		cubeW: 100000,
+		cubeH: 100000,
+		cubeD: 100000
 		});
 	scene.add( skymap );
 }
@@ -409,6 +455,26 @@ function getY( x, z ) {
 
 function setupComposer(reset) {
 	//this is the display window resolution
+
+	switch (resolution) {
+		case 'dk1':
+			W = _W*0.5, H = _H*0.5;
+			Z = 1/0.5;
+			break;
+		case 'fhd':
+			W = _W*0.67, H = _H*0.67;
+			Z = 1/0.67;
+			break;
+		case 'cv1':
+			W = _W*0.9, H = _H*0.9;
+			Z = 1/0.9;
+			break;
+		case 'cv2':
+			W = _W*1.35, H = _H*1.35;
+			Z = 1/1.35;
+			break;
+	}
+
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	
 	//changing resolution here changes the output resolution, which is upscaled to the resolution above
@@ -422,13 +488,12 @@ function setupComposer(reset) {
 		stencilBuffer: false };
 
 	//changing resolution here changes the FIR motion blur resolution only.
-	effectSave = new THREE.SavePass(
+		new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters ) );
 		new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, new_rtt_params ) );
 
 	effectBlend = new THREE.ShaderPass( THREE.BlendShader, "tDiffuse1" );
-
 	effectBlend.uniforms[ 'tDiffuse2' ].value = effectSave.renderTarget;
-	effectBlend.uniforms[ 'mixRatio' ].value = 0.8;
+	effectBlend.uniforms[ 'mixRatio' ].value = 0.65;
 
 	scalerPass.uniforms[ 'tDiffuseS' ].value = renderPass.specialBuf;
 
@@ -437,28 +502,31 @@ function setupComposer(reset) {
 	composer.addPass( renderPass );
 
 	composer.addPass(scalerPass);
-
-	composer.addPass( vignettePass );
+	//composer.addPass( vignettePass );
 
 	//screen door
+	filmPass.uniforms["nIntensity"].value = 0.5;
+	filmPass.uniforms["sIntensity"].value = 0.2;	
 	screenPass.uniforms["enable"].value = 1;
 	if (resolution == 'dk1') {
-		//filmPass.uniforms["sCount"].value = 1024;
-		screenPass.uniforms["resolution"].value = 6;
-		screenPass.uniforms["opacity"].value = 0.2;
-	} else if (resolution == 'fhd') {
-		//filmPass.uniforms["sCount"].value = 2048;
-		screenPass.uniforms["resolution"].value = 4;
-		screenPass.uniforms["resolution"].value = 4;
-		screenPass.uniforms["opacity"].value = 0.15;			
-	} else if (resolution == 'cv1') {
-		//filmPass.uniforms["sCount"].value = 8000;
+		filmPass.uniforms["sCount"].value = 600;
 		screenPass.uniforms["resolution"].value = 3;
-		screenPass.uniforms["opacity"].value = 0.1;
+		screenPass.uniforms["opacity"].value = 0.05;
+	} else if (resolution == 'fhd') {
+		filmPass.uniforms["sCount"].value = 900;
+		screenPass.uniforms["resolution"].value = 2;
+		screenPass.uniforms["opacity"].value = 0.02;		
+	} else if (resolution == 'cv1') {
+		filmPass.uniforms["sCount"].value = 1200;
+		screenPass.uniforms["resolution"].value = 1;
+		screenPass.uniforms["opacity"].value = 0.01;
 	} else { // cv2 - 4k
+		filmPass.uniforms["sCount"].value = 2400;		
+		filmPass.uniforms["nIntensity"].value = 0.0;
+		filmPass.uniforms["sIntensity"].value = 0.0;		
 		screenPass.uniforms["resolution"].value = 2;
 		screenPass.uniforms["opacity"].value = 0.06;
-		//screenPass.uniforms["enable"].value = 0;
+		screenPass.uniforms["enable"].value = 0;
 	}
 
 	if (persistence == 'high') {
@@ -471,6 +539,8 @@ function setupComposer(reset) {
 	composer.addPass( screenPass );
 	
 	//composer.addPass( filmPass );
+	//composer.addPass( screenPass );
+	composer.addPass( filmPass );
 
 
 	composer.addPass( copyPass );
