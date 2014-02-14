@@ -488,8 +488,8 @@ function setupComposer(reset) {
 		stencilBuffer: false };
 
 	//changing resolution here changes the FIR motion blur resolution only.
-		new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters ) );
-		new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, new_rtt_params ) );
+		new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters );
+		new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, new_rtt_params );
 
 	effectBlend = new THREE.ShaderPass( THREE.BlendShader, "tDiffuse1" );
 	effectBlend.uniforms[ 'tDiffuse2' ].value = effectSave.renderTarget;
