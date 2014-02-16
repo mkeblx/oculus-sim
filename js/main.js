@@ -247,6 +247,7 @@ function init() {
 	var mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { map: texture, ambient: 0xbbbbbb, vertexColors: THREE.VertexColors } ) );
 	scene.add( mesh );
 
+	addSkybox();
 	addText();
 
 	var ambientLight = new THREE.AmbientLight( 0xcccccc );
@@ -256,7 +257,6 @@ function init() {
 	directionalLight.position.set( 1, 1, 0.5 ).normalize();
 	scene.add( directionalLight );
 
-	addSkybox();
 
 	renderer = new THREE.WebGLRenderer({ antialias: true });
 	//renderer.autoClear = false;
@@ -267,15 +267,6 @@ function init() {
 		magFilter: THREE.LinearFilter,
 		format: THREE.RGBFormat,
 		stencilBuffer: false };
-	renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters  );
-
-	effectSave = new THREE.SavePass( new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters ) );
-
-	effectBlend = new THREE.ShaderPass( THREE.BlendShader, "tDiffuse1" );
-
-	effectBlend.uniforms[ 'tDiffuse2' ].value = effectSave.renderTarget;
-	effectBlend.uniforms[ 'mixRatio' ].value = 0.77;
-
 
 	//Trying to add a second pass!
 	//render the scene in the first pass.
@@ -298,13 +289,6 @@ function init() {
 	//postprocessing
 	var specBuf =  new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, rtt_params );
 	renderPass = new THREE.RenderPass( scene, camera, specBuf );
-
-	vignettePass = new THREE.ShaderPass( THREE.VignetteShader );
-	vignettePass.uniforms[ "darkness" ].value = 0.5;
-	vignettePass.uniforms[ "offset" ].value = 0.7;
-
-	hblurPass = new THREE.ShaderPass( THREE.HorizontalBlurShader );
-	vblurPass = new THREE.ShaderPass( THREE.VerticalBlurShader );
 
 	copyPass = new THREE.ShaderPass( THREE.CopyShader );
 
@@ -501,6 +485,7 @@ function setupComposer(reset) {
 
 	effectBlend = new THREE.ShaderPass( THREE.BlendShader, "tDiffuse1" );
 	effectBlend.uniforms[ 'tDiffuse2' ].value = effectSave.renderTarget;
+	effectBlend.uniforms[ 'mixRatio' ].value = 0.65;
 
 	scalerPass.uniforms[ 'tDiffuseS' ].value = renderPass.specialBuf;
 
@@ -509,7 +494,6 @@ function setupComposer(reset) {
 	composer.addPass( renderPass );
 
 	composer.addPass(scalerPass);
-	//composer.addPass( vignettePass );
 
 	//screen door
 	filmPass.uniforms["nIntensity"].value = 0.5;
@@ -524,12 +508,12 @@ function setupComposer(reset) {
 		filmPass.uniforms["sCount"].value = 900;
 		screenPass.uniforms["resolution"].value = 1.5;
 		screenPass.uniforms["opacity"].value = 0.02;
-		effectBlend.uniforms[ 'mixRatio' ].value = 0.4;		
+		//effectBlend.uniforms[ 'mixRatio' ].value = 0.4;		
 	} else if (resolution == 'cv1') {
 		filmPass.uniforms["sCount"].value = 1200;
 		screenPass.uniforms["resolution"].value = 1.0/(0.9);
 		screenPass.uniforms["opacity"].value = 0.0;
-		effectBlend.uniforms[ 'mixRatio' ].value = 0.0;
+		//effectBlend.uniforms[ 'mixRatio' ].value = 0.0;
 	} else { // cv2 - 4k
 		filmPass.uniforms["sCount"].value = 2400;		
 		filmPass.uniforms["nIntensity"].value = 0.0;
@@ -537,15 +521,12 @@ function setupComposer(reset) {
 		screenPass.uniforms["resolution"].value = 1.0;
 		screenPass.uniforms["opacity"].value = 0.06;
 		screenPass.uniforms["enable"].value = 0;
-		effectBlend.uniforms[ 'mixRatio' ].value = 0.0;
+		//effectBlend.uniforms[ 'mixRatio' ].value = 0.0;
 	}
 
 	if (persistence == 'high') {
 		composer.addPass( effectBlend );
 		composer.addPass( effectSave );
-
-		//composer.addPass( hblurPass );
-		//composer.addPass( vblurPass );
 	}
 
 	composer.addPass( filmPass );
