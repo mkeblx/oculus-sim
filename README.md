@@ -13,3 +13,7 @@ Viewable [here](http://vr.mkeblx.net/oculus-sim).
 * sensor drift => camera exhibits a slow but steady rotation
 * scene loading: multiple scenes, such as tuscany
 * enable finer grain control of shader effects
+
+### thanks
+
+[vladkvit](https://github.com/vladkvit)
